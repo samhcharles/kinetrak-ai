@@ -1,8 +1,12 @@
 {
-  "name": "Kinetrak AI",
-  "description": "A live kinesiology tracking tool using MediaPipe for biomechanical posture and movement analysis.",
-  "requestFramePermissions": [
-    "camera"
-  ],
-  "majorCapabilities": []
+  "name": "KineTrak AI",
+  "type": "experiment",
+  "description": "Live kinesiology tracking using MediaPipe for biomechanical posture and movement analysis.",
+  "stage": "prototype",
+  "org": "madebymadhouse",
+  "repo": "madebymadhouse/kinetrak-ai",
+  "public": true,
+  "started": "2025-01-01",
+  "updated": "2026-05-11",
+  "notes": "Prototype stage. Camera-based real-time pose analysis. Needs productization work before shipping."
 }
