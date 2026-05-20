@@ -1,4 +1,8 @@
-# Kinetrak AI
+![Kinetrak AI banner](assets/banner.svg)
+
+<a href="#what-it-does"><img src="assets/buttons/btn-what-it-does.svg" alt="What it Does" /></a>&nbsp;<a href="#controls"><img src="assets/buttons/btn-controls.svg" alt="Controls" /></a>&nbsp;<a href="#tech-stack"><img src="assets/buttons/btn-tech-stack.svg" alt="Tech Stack" /></a>&nbsp;<a href="#get-started"><img src="assets/buttons/btn-get-started.svg" alt="Get Started" /></a>
+
+---
 
 Real-time body and face tracking in the browser using [MediaPipe Holistic](https://developers.google.com/mediapipe/solutions/vision/holistic_landmarker). Tracks full-body pose, hands, and facial landmarks simultaneously and renders them as an overlay on live camera feed.
 
