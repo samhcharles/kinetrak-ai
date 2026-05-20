@@ -2,9 +2,10 @@ import { WebSocketServer, WebSocket } from 'ws';
 import dgram from 'dgram';
 import { PoseRingBuffer } from './buffer';
 import { vec3, Vec3, mag, sub, add } from './kinematics';
-import { 
-    OneEuroFilter, solveHeadPose, solveMuscleTension, solveGaze, 
-    solveHandTopology, calculateKineticEnergy, constrainBone, solveBodyCollisions
+import {
+    OneEuroFilter, solveHeadPose, solveMuscleTension, solveGaze,
+    solveHandTopology, solveHandKinematics, calculateKineticEnergy, constrainBone, solveBodyCollisions,
+    angleBetween
 } from './solver';
 
 /**
@@ -125,11 +126,18 @@ function solveV12(state: Client, frame: Float32Array) {
     };
     const head = { c: nose, r: mag(sub(lSh, rSh)) * 0.25 };
 
-    const res: any = { 
-        pose: solveHeadPose(frame, faceOff),
-        face: solveMuscleTension(frame, faceOff),
+    const getVel = (absIdx: number) => state.buffer.getVelocity(absIdx);
+
+    const res: any = {
+        pose:  solveHeadPose(frame, faceOff),
+        face:  solveMuscleTension(frame, faceOff),
+        gaze:  solveGaze(frame, faceOff),
+        hands: {
+            left:  frame[33*4+3] > 0.2 ? solveHandKinematics(frame, 33, getVel) : null,
+            right: frame[54*4+3] > 0.2 ? solveHandKinematics(frame, 54, getVel) : null,
+        },
         constrained: {},
-        physics: { torso, head } // For UI viz
+        physics: { torso, head },
     };
 
     // 2. Rigid Constraints + Collision Clamping

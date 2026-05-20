@@ -92,14 +92,26 @@ export function solveGaze(frame: Float32Array, offset: number) {
     return { l: solve(468, 133, 33), r: solve(473, 362, 263) };
 }
 
+function solveSphereCollision(p: Vec3, center: Vec3, radius: number, out = vec3()): Vec3 {
+    const d = sub(p, center);
+    const dist = mag(d);
+    if (dist < radius && dist > 0) {
+        const scale = radius / dist;
+        out[0] = center[0] + d[0] * scale;
+        out[1] = center[1] + d[1] * scale;
+        out[2] = center[2] + d[2] * scale;
+        return out;
+    }
+    out[0] = p[0]; out[1] = p[1]; out[2] = p[2];
+    return out;
+}
+
 /**
  * Multi-Volume Body Collision
  * Protects Torso and Head volumes from limb penetration.
  */
 export function solveBodyCollisions(p: Vec3, torso: { c: Vec3, r: number }, head: { c: Vec3, r: number }, out = vec3()): Vec3 {
-    // 1. Head Check
     let current = solveSphereCollision(p, head.c, head.r, out);
-    // 2. Torso Check (sequential projection)
     return solveSphereCollision(current, torso.c, torso.r, out);
 }
 
@@ -125,6 +137,42 @@ export function calculateKineticEnergy(velocities: Float32Array[]): number {
         if (v) energy += 0.5 * m * (v[0]**2 + v[1]**2 + v[2]**2);
     }
     return energy;
+}
+
+// ── Per-hand kinematics (finger joint angles + tip speeds) ────────────────────
+
+export function solveHandKinematics(frame: Float32Array, handOffset: number, getVelocity: (absIdx: number) => Float32Array) {
+    const getL = (idx: number) => getV(frame, handOffset + idx);
+
+    // 4 fingers: [MCP, PIP, DIP, tip] index sets
+    const fingers = [
+        [5, 6, 7, 8],
+        [9, 10, 11, 12],
+        [13, 14, 15, 16],
+        [17, 18, 19, 20],
+    ] as const;
+
+    const fingerAngles: number[] = [];
+    for (const [mcp, pip, dip, tip] of fingers) {
+        // MCP: wrist(0) → MCP → PIP
+        const mcpA = angleBetween(sub(getL(mcp), getL(0)), sub(getL(pip), getL(mcp)));
+        // PIP: MCP → PIP → DIP
+        const pipA = angleBetween(sub(getL(pip), getL(mcp)), sub(getL(dip), getL(pip)));
+        // DIP: PIP → DIP → tip
+        const dipA = angleBetween(sub(getL(dip), getL(pip)), sub(getL(tip), getL(dip)));
+        fingerAngles.push(+mcpA.toFixed(1), +pipA.toFixed(1), +dipA.toFixed(1));
+    }
+
+    // Wrist flexion: angle between palm width vector and middle-finger direction
+    const wristAngle = angleBetween(sub(getL(9), getL(0)), sub(getL(5), getL(17)));
+
+    // Tip velocities (index=8, middle=12, ring=16, pinky=20)
+    const tipVelocities = [8, 12, 16, 20].map(i => {
+        const v = getVelocity(handOffset + i);
+        return +Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2).toFixed(5);
+    });
+
+    return { fingerAngles, wristAngle: +wristAngle.toFixed(1), tipVelocities };
 }
 
 export { vec3, sub, add, mag, normalize, dot, cross, quatFromVectors, angleBetween };

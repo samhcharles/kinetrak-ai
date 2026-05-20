@@ -1,10 +1,10 @@
 import React from 'react';
-import BodyTrackEngine from './components/BodyTrackEngine';
+import KinetrackEngine from './components/KinetrackEngine';
 
 const App: React.FC = () => {
   return (
     <div className="w-full h-screen">
-      <BodyTrackEngine />
+      <KinetrackEngine />
     </div>
   );
 };
